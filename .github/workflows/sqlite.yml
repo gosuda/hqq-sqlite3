@@ -15,8 +15,11 @@ jobs:
       matrix:
         os: [ubuntu-24.04, macos-14]
     runs-on: ${{ matrix.os }}
+    timeout-minutes: 25
     steps:
       - uses: actions/checkout@v4
+      - name: Checkout HQQ core
+        run: git clone --depth 1 https://github.com/gosuda/HQQ.git ../HQQ
       - uses: actions/setup-go@v5
         with:
           go-version: '1.24.x'
@@ -30,4 +33,4 @@ jobs:
       - name: Build hqq-sqlite-server and run Go tests
         run: |
           eval "$(sqlite3/build.sh -T)"
-          go test -v -race ./...
+          go test -p 1 -v -race -timeout 10m ./...
