@@ -96,7 +96,7 @@ End-to-end `database/sql` latency measured against `hqq-sqlite-server` (SQLite `
 
 Module release tags follow `v<WrapperMajor>.<WrapperMinor>.<SQLiteVersionNumber>`:
 
-- **`v0.2.3540100`**: Wrapper `v0.1`, SQLite `3.54.1` (`SQLITE_VERSION_NUMBER = 3540100`).
+- **`v0.3.3540100`**: Wrapper `v0.3`, SQLite `3.54.1` (`SQLITE_VERSION_NUMBER = 3540100`).
 - Release builds publish SLSA build provenance attestations (`actions/attest-build-provenance`) and pin per-platform SHA-256 digests in [`../hashes.go`](../hashes.go).
 
 Build `hqq-sqlite-server` and run the full test and benchmark suites from the repository root:

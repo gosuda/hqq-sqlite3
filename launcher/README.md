@@ -128,7 +128,7 @@ Before cutting a signed manifest release, generate a production key pair with `h
 2. Copy the binary into `dist/hqq-sqlite-server_<os>_<arch>[.exe]`.
 3. Generate `manifest.json`:
    ```sh
-   go run gosuda.org/hqq/cmd/hqq-manifest gen -dir dist -name hqq-sqlite-server -release v0.2.3540100 -license MIT -out dist/manifest.json
+   go run gosuda.org/hqq/cmd/hqq-manifest gen -dir dist -name hqq-sqlite-server -release v0.3.3540100 -license MIT -out dist/manifest.json
    ```
 4. Sign the manifest:
    ```sh

@@ -382,6 +382,9 @@ func (cn *conn) prepare(query string) (*stmt, error) {
 
 // deferFinalize finalizes a statement in the background of the next call.
 func (cn *conn) deferFinalize(id stmtID) {
+	if cn.closed.Load() || cn.bad.Load() {
+		return
+	}
 	w, err := cn.api.FinalizeAsync(id)
 	if err != nil {
 		cn.markBad()
@@ -392,6 +395,9 @@ func (cn *conn) deferFinalize(id stmtID) {
 
 // deferReset resets a statement in the background of the next call.
 func (cn *conn) deferReset(id stmtID) {
+	if cn.closed.Load() || cn.bad.Load() {
+		return
+	}
 	w, err := cn.api.ResetAsync(id)
 	if err != nil {
 		cn.markBad()

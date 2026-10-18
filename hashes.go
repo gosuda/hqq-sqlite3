@@ -5,7 +5,7 @@ import "gosuda.org/hqq/secureexec"
 // Version follows the v<WrapperMajor>.<WrapperMinor>.<NormalizedCVersion> scheme,
 // where 3540100 corresponds to SQLITE_VERSION_NUMBER (SQLite 3.54.1).
 const (
-	Version             = "v0.2.3540100"
+	Version             = "v0.3.3540100"
 	SQLiteVersionNumber = 3540100
 )
 

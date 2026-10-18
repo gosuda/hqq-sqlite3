@@ -78,7 +78,7 @@ func (r *rows) ingest(b sqlite3.Rows) error {
 		// The step failed. The rows read before it are in the batch, and the
 		// caller sees them before the error.
 		r.final = true
-		r.endErr = libError(int64(b.Rc), b.Errmsg)
+		r.endErr = cn.failure(r.ctx, "Fetch", libError(int64(b.Rc), b.Errmsg))
 	}
 	if err := r.readBig(); err != nil {
 		return err
@@ -198,7 +198,11 @@ func (r *rows) Next(dest []driver.Value) error {
 	r.valid = false
 	for r.pos >= len(r.cells) {
 		if r.final {
-			r.err = r.endErr
+			if r.endErr != io.EOF {
+				r.err = r.cn.failure(r.ctx, "Fetch", r.endErr)
+			} else {
+				r.err = io.EOF
+			}
 			return r.err
 		}
 		if err := r.advance(); err != nil {

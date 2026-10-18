@@ -119,7 +119,7 @@ db := sql.OpenDB(conn)
 ```go
 const (
 	DriverName          = "sqlite3"
-	Version             = "v0.2.3540100"
+	Version             = "v0.3.3540100"
 	SQLiteVersionNumber = 3540100
 )
 

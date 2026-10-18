@@ -164,6 +164,14 @@ func statusText(se *rt.StatusError) string {
 // serverError converts an answer of the server that leaves the session usable:
 // a library failure or a refused call. It returns nil for every other error.
 func serverError(err error) error {
+	var sqle *Error
+	if errors.As(err, &sqle) {
+		return sqle
+	}
+	var pe *ProtocolError
+	if errors.As(err, &pe) {
+		return pe
+	}
 	var le *rt.LibError
 	if errors.As(err, &le) {
 		return libError(le.Code, le.Detail)
