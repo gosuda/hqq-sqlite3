@@ -17,7 +17,7 @@ import (
 )
 
 // DriverName is the name the driver is registered under with database/sql.
-const DriverName = "hqq-sqlite"
+const DriverName = "sqlite3"
 
 // Compile-time checks of the database/sql interfaces the driver implements.
 var (
@@ -31,7 +31,7 @@ func init() {
 	sql.Register(DriverName, &Driver{})
 }
 
-// Driver is the database/sql driver "hqq-sqlite". It is registered by the
+// Driver is the database/sql driver "sqlite3". It is registered by the
 // package's init function.
 type Driver struct{}
 

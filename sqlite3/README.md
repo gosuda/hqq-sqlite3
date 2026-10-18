@@ -2,7 +2,7 @@
 
 `gosuda.org/hqq-sqlite3/sqlite3` implements the out-of-process SQLite service using [`hqq-bindgen`](https://github.com/gosuda/HQQ/tree/main/bindgen): a pure-Go client (`sqlite3_client.go`) and C11 server (`hqq-sqlite-server` / `sqlite3_server`) generated from [`sqlite3.idl`](sqlite3.idl), paired with a C hook layer ([`server/sqlite3_hooks.c`](server/sqlite3_hooks.c)) and cross-platform path-policy modules (`server/sqlsrv_policy.c`, `server/sqlsrv_pathrules.c`). Go applications invoke SQLite over HQQ shared memory without linking `cgo`, and a crash inside SQLite terminates only the worker process.
 
-The top-level `database/sql` driver ([`gosuda.org/hqq-sqlite3`](../README.md), driver name `"hqq-sqlite"`) is layered directly on top of this generated client.
+The top-level `database/sql` driver ([`gosuda.org/hqq-sqlite3`](../README.md), driver name `"sqlite3"`) is layered directly on top of this generated client.
 
 | Path | Role |
 | :--- | :--- |

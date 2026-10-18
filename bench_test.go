@@ -10,10 +10,10 @@ import (
 	"sync"
 	"testing"
 
-	_ "gosuda.org/hqq-sqlite3" // registers hqq-sqlite
+	_ "gosuda.org/hqq-sqlite3" // registers sqlite3
 )
 
-// Benchmarks of the driver (hqq-sqlite) through database/sql.
+// Benchmarks of the driver (sqlite3) through database/sql.
 //
 //	go test -run '^$' -bench . -benchtime 2s -count 5 ./sqlite
 //

@@ -6,7 +6,7 @@
 
 ## 1. DSN URI Syntax
 
-Every `sql.Open("hqq-sqlite", dsn)` call expects a URI with the `hqq://` scheme:
+Every `sql.Open("sqlite3", dsn)` call expects a URI with the `hqq://` scheme:
 
 ```text
 hqq://<listener>?db=<alias-or-path>[&<key>=<value>...]
@@ -22,7 +22,7 @@ Example DSN with standard control knobs:
 
 ```go
 db, err := sql.Open(
-	"hqq-sqlite",
+	"sqlite3",
 	"hqq://sqlite-svc?db=main&mode=rwc&_journal=WAL&_sync=NORMAL&_fk=1&_busy_timeout=5000&_txlock=immediate&_loc=UTC",
 )
 ```

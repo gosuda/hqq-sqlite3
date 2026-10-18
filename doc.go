@@ -5,15 +5,15 @@
 // isolated generated-client session with its own shared-memory ring, dedicated
 // server thread, and sqlite3 connection handle.
 //
-// The driver registers itself as "hqq-sqlite" when the package is imported:
+// The driver registers itself as "sqlite3" when the package is imported:
 //
 //	import (
 //		"database/sql"
 //
-//		_ "gosuda.org/hqq-sqlite3" // registers "hqq-sqlite"
+//		_ "gosuda.org/hqq-sqlite3" // registers "sqlite3"
 //	)
 //
-//	db, err := sql.Open("hqq-sqlite", "hqq://sqlite-svc?db=main&_journal=WAL&_busy_timeout=5000")
+//	db, err := sql.Open("sqlite3", "hqq://sqlite-svc?db=main&_journal=WAL&_busy_timeout=5000")
 //
 // The DSN format is hqq://<listener>?<options>, where <listener> is the HQQ
 // acceptor name of the server. Supported options include db (required alias or

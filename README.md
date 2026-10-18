@@ -6,6 +6,14 @@
 go get gosuda.org/hqq-sqlite3
 ```
 
+## Supported Platforms
+
+| OS | Architectures | Prebuilt `hqq-sqlite-server` Release Asset |
+| :--- | :--- | :--- |
+| **Linux** | `amd64`, `arm64` | `hqq-sqlite-server_linux_amd64`, `hqq-sqlite-server_linux_arm64` |
+| **macOS** | `arm64` (Apple Silicon), `amd64` | `hqq-sqlite-server_darwin_arm64`, `hqq-sqlite-server_darwin_amd64` |
+| **Windows** | `amd64`, `arm64` | `hqq-sqlite-server_windows_amd64.exe` (`arm64` via source build) |
+
 ---
 
 ## Quickstart
@@ -66,19 +74,19 @@ func main() {
 }
 ```
 
-### 2. Standard `database/sql` DSN (`"hqq-sqlite"`)
+### 2. Standard `database/sql` DSN (`"sqlite3"`)
 
-Import `gosuda.org/hqq-sqlite3` to register the `"hqq-sqlite"` driver and open a connection via `sql.Open`:
+Import `gosuda.org/hqq-sqlite3` to register the `"sqlite3"` driver (matching `github.com/mattn/go-sqlite3`) and open a connection via `sql.Open`:
 
 ```go
 import (
 	"database/sql"
 
-	_ "gosuda.org/hqq-sqlite3" // registers "hqq-sqlite"
+	_ "gosuda.org/hqq-sqlite3" // registers "sqlite3"
 )
 
 db, err := sql.Open(
-	"hqq-sqlite",
+	"sqlite3",
 	"hqq://sqlite-svc?db=main&_journal=WAL&_sync=NORMAL&_fk=1&_busy_timeout=5000&_txlock=immediate",
 )
 if err != nil {
@@ -118,7 +126,7 @@ defer db.Close()
 
 ```go
 const (
-	DriverName          = "hqq-sqlite"
+	DriverName          = "sqlite3"
 	Version             = "v0.1.3540100"
 	SQLiteVersionNumber = 3540100
 )
