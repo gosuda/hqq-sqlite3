@@ -11,7 +11,7 @@ import (
 	"strings"
 	"time"
 
-	"gosuda.org/hqq-sqlite3"
+	"gosuda.org/sqlite3"
 	"gosuda.org/hqq/launch"
 	"gosuda.org/hqq/secureexec"
 )

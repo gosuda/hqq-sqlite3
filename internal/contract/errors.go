@@ -5,7 +5,7 @@ import (
 	"errors"
 	"testing"
 
-	"gosuda.org/hqq-sqlite3"
+	"gosuda.org/sqlite3"
 )
 
 // constraintTable creates a table with a primary key, a UNIQUE column, and a

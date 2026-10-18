@@ -9,7 +9,7 @@ import (
 	"testing"
 	"time"
 
-	"gosuda.org/hqq-sqlite3"
+	"gosuda.org/sqlite3"
 )
 
 func testPool(t *testing.T, db *sql.DB, caps Capabilities) {

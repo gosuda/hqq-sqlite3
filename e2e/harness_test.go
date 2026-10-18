@@ -1,4 +1,4 @@
-// Package e2e runs the Go driver (gosuda.org/hqq-sqlite3) against the C server
+// Package e2e runs the Go driver (gosuda.org/sqlite3) against the C server
 // (bindgen/examples/sqlite3/server) over real HQQ links.
 //
 // The server binary is named by HQQ_SQLITE_SERVER. When it is not set, or it
@@ -21,8 +21,8 @@ import (
 	"time"
 
 	"gosuda.org/hqq"
-	"gosuda.org/hqq-sqlite3"
-	"gosuda.org/hqq-sqlite3/internal/wire"
+	"gosuda.org/sqlite3"
+	"gosuda.org/sqlite3/internal/wire"
 )
 
 // fastLink makes heartbeats quick, so a dead peer is seen within a few hundred

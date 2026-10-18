@@ -17,10 +17,10 @@ import (
 	"time"
 
 	"gosuda.org/hqq"
-	"gosuda.org/hqq-sqlite3/sqlite3/sqlite3srv"
+	"gosuda.org/sqlite3/sqlite3/sqlite3srv"
 	"gosuda.org/hqq/bindgen/rt"
-	"gosuda.org/hqq-sqlite3"
-	"gosuda.org/hqq-sqlite3/internal/wire"
+	"gosuda.org/sqlite3"
+	"gosuda.org/sqlite3/internal/wire"
 )
 
 // fastLink makes heartbeats quick, so a dead server is seen within a few hundred

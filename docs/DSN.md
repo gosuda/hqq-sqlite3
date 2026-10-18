@@ -1,6 +1,6 @@
-# DSN Reference and Control Knobs (`gosuda.org/hqq-sqlite3`)
+# DSN Reference and Control Knobs (`gosuda.org/sqlite3`)
 
-`gosuda.org/hqq-sqlite3` accepts both standard SQLite file / `:memory:` DSN strings (`app.db?_journal=WAL`, `file:app.db?mode=ro`, `:memory:`) and explicit listener URIs (`hqq://<listener>?db=<alias-or-path>`). Query parameters are translated into session transport settings, transaction lock modes, timezone locations, and `PRAGMA` statements executed when each `database/sql` connection opens. Both explicit driver keys (`busy`, `txlock`, `pragma.<name>`) and standard SQLite driver underscore-prefixed control knobs (`_busy_timeout`, `_txlock`, `_fk`, `_journal_mode`, `_synchronous`, `_loc`, and others) are supported so existing `github.com/mattn/go-sqlite3` applications can migrate without rewriting connection strings.
+`gosuda.org/sqlite3` accepts both standard SQLite file / `:memory:` DSN strings (`app.db?_journal=WAL`, `file:app.db?mode=ro`, `:memory:`) and explicit listener URIs (`hqq://<listener>?db=<alias-or-path>`). Query parameters are translated into session transport settings, transaction lock modes, timezone locations, and `PRAGMA` statements executed when each `database/sql` connection opens. Both explicit driver keys (`busy`, `txlock`, `pragma.<name>`) and standard SQLite driver underscore-prefixed control knobs (`_busy_timeout`, `_txlock`, `_fk`, `_journal_mode`, `_synchronous`, `_loc`, and others) are supported so existing `github.com/mattn/go-sqlite3` applications can migrate without rewriting connection strings.
 
 ---
 

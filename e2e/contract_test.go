@@ -4,7 +4,7 @@ import (
 	"database/sql"
 	"testing"
 
-	"gosuda.org/hqq-sqlite3/internal/contract"
+	"gosuda.org/sqlite3/internal/contract"
 )
 
 // contractOpenDB starts one C server process for the calling test and returns a

@@ -33,7 +33,7 @@ import (
 	"testing"
 	"time"
 
-	"gosuda.org/hqq-sqlite3/sqlite3"
+	"gosuda.org/sqlite3/sqlite3"
 	"gosuda.org/hqq/bindgen/rt"
 	"gosuda.org/hqq/launch"
 	"gosuda.org/hqq/secureexec"

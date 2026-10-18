@@ -13,9 +13,9 @@ import (
 	"testing"
 	"time"
 
-	"gosuda.org/hqq-sqlite3/sqlite3"
+	"gosuda.org/sqlite3/sqlite3"
 	"gosuda.org/hqq/bindgen/rt"
-	"gosuda.org/hqq-sqlite3/internal/wire"
+	"gosuda.org/sqlite3/internal/wire"
 )
 
 // fakeAPI is a scripted api. It records every call, and a blocking fetch waits

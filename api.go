@@ -1,7 +1,7 @@
 package sqlite
 
 import (
-	"gosuda.org/hqq-sqlite3/sqlite3"
+	"gosuda.org/sqlite3/sqlite3"
 )
 
 // dbID and stmtID are the ids of the handles of a session. The driver keeps ids

@@ -6,7 +6,7 @@ import (
 	"fmt"
 	"testing"
 
-	"gosuda.org/hqq-sqlite3/sqlite3"
+	"gosuda.org/sqlite3/sqlite3"
 )
 
 // seq fills a table t(id INTEGER PRIMARY KEY, name TEXT, score REAL) with n rows through one recursive CTE,

@@ -1,6 +1,6 @@
-# Architecture and Internals (`gosuda.org/hqq-sqlite3`)
+# Architecture and Internals (`gosuda.org/sqlite3`)
 
-This document describes the internal execution model, shared-memory IPC layout, handle table guarantees, batching shims, error retry classification, and benchmark results of `gosuda.org/hqq-sqlite3`.
+This document describes the internal execution model, shared-memory IPC layout, handle table guarantees, batching shims, error retry classification, and benchmark results of `gosuda.org/sqlite3`.
 
 ---
 
@@ -11,8 +11,8 @@ Each `*sql.Conn` opens an isolated HQQ `StandardLink` shared-memory session to `
 ```mermaid
 flowchart LR
     subgraph Go["Go Application Process (CGO_ENABLED=0)"]
-        SQL["database/sql"] --> DRV["gosuda.org/hqq-sqlite3\n(driver.Driver / Connector)"]
-        DRV --> CLI["gosuda.org/hqq-sqlite3/sqlite3\n(hqq-bindgen Client)"]
+        SQL["database/sql"] --> DRV["gosuda.org/sqlite3\n(driver.Driver / Connector)"]
+        DRV --> CLI["gosuda.org/sqlite3/sqlite3\n(hqq-bindgen Client)"]
     end
 
     subgraph SHM["HQQ Shared Memory"]
@@ -31,7 +31,7 @@ flowchart LR
     DRV -.->|"OpCancel -> sqlite3_interrupt"| CTRL -.-> DISP
 ```
 
-| Property | `gosuda.org/hqq-sqlite3` | In-Process `cgo` SQLite | Transpiled C-to-Go SQLite |
+| Property | `gosuda.org/sqlite3` | In-Process `cgo` SQLite | Transpiled C-to-Go SQLite |
 | :--- | :--- | :--- | :--- |
 | **Go Build & Cross-Compilation** | Pure Go (`CGO_ENABLED=0`), standard Go compiler | Requires C toolchain and `CGO_ENABLED=1` | Pure Go (`CGO_ENABLED=0`) |
 | **SQLite Engine Implementation** | Official SQLite C amalgamation (`-O3`, native SIMD) | Official SQLite C amalgamation | Mechanical C-to-Go translation |
@@ -53,7 +53,7 @@ Raw `sqlite3*` and `sqlite3_stmt*` pointers never cross the process boundary. `h
 
 ## 3. Batched Row Fetching and Oversized Cell Streaming
 
-Naive per-row IPC over `sqlite3_step` and `sqlite3_column_*` incurs one round trip per column. `gosuda.org/hqq-sqlite3` eliminates chatty round trips with three composite C shims in [`../sqlite3/server/sqlite3_hooks.c`](../sqlite3/server/sqlite3_hooks.c):
+Naive per-row IPC over `sqlite3_step` and `sqlite3_column_*` incurs one round trip per column. `gosuda.org/sqlite3` eliminates chatty round trips with three composite C shims in [`../sqlite3/server/sqlite3_hooks.c`](../sqlite3/server/sqlite3_hooks.c):
 
 1. **`exec_stmt`**: combines `sqlite3_reset`, bulk parameter binding (`bind_values`), `sqlite3_step` to completion, `sqlite3_changes64`, and `sqlite3_last_insert_rowid` into a single RPC round trip.
 2. **`fetch_rows`**: steps up to `fetch` rows (default `256`, max `4096`) into a single 64 KiB response buffer (`@max_out(65536)`), reserving trailer space before each step so it never steps a row it cannot serialize.
@@ -96,7 +96,7 @@ End-to-end `database/sql` latency measured against `hqq-sqlite-server` (SQLite `
 
 Module release tags follow `v<WrapperMajor>.<WrapperMinor>.<SQLiteVersionNumber>`:
 
-- **`v0.1.3540100`**: Wrapper `v0.1`, SQLite `3.54.1` (`SQLITE_VERSION_NUMBER = 3540100`).
+- **`v0.2.3540100`**: Wrapper `v0.1`, SQLite `3.54.1` (`SQLITE_VERSION_NUMBER = 3540100`).
 - Release builds publish SLSA build provenance attestations (`actions/attest-build-provenance`) and pin per-platform SHA-256 digests in [`../hashes.go`](../hashes.go).
 
 Build `hqq-sqlite-server` and run the full test and benchmark suites from the repository root:

@@ -1,6 +1,6 @@
 # `hqq-sqlite` Wire Protocol, Version 1.0
 
-This specification documents the SQLite service error codes (`internal/wire`), open-policy rules, single-statement rules, and resource limits enforced by the `gosuda.org/hqq-sqlite3` driver (`"sqlite3"`) and the C11 SQLite server (`sqlite3/server`, built on `libhqq` and `hqq-bindgen`).
+This specification documents the SQLite service error codes (`internal/wire`), open-policy rules, single-statement rules, and resource limits enforced by the `gosuda.org/sqlite3` driver (`"sqlite3"`) and the C11 SQLite server (`sqlite3/server`, built on `libhqq` and `hqq-bindgen`).
 
 The key words `MUST`, `MUST NOT`, `SHOULD`, and `MAY` in this document are to be interpreted as described in RFC 2119.
 

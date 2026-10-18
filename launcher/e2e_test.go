@@ -20,11 +20,11 @@ import (
 	"time"
 
 	"gosuda.org/hqq"
-	"gosuda.org/hqq-sqlite3/internal/launchtest"
+	"gosuda.org/sqlite3/internal/launchtest"
 	"gosuda.org/hqq/secureexec"
-	"gosuda.org/hqq-sqlite3"
-	"gosuda.org/hqq-sqlite3/internal/contract"
-	"gosuda.org/hqq-sqlite3/launcher"
+	"gosuda.org/sqlite3"
+	"gosuda.org/sqlite3/internal/contract"
+	"gosuda.org/sqlite3/launcher"
 )
 
 // serverBinary returns the resolved path and digest of the real server, or

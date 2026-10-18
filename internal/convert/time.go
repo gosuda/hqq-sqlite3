@@ -1,7 +1,7 @@
 // Package convert holds the value conversions that the hqq-sqlite drivers
 // share: the mapping of database/sql arguments to the five SQLite storage
 // classes, the TEXT form of times, and the metadata derived from declared
-// column types. Both drivers (gosuda.org/hqq-sqlite3 and the generated-client
+// column types. Both drivers (gosuda.org/sqlite3 and the generated-client
 // driver under it) use it, so they cannot diverge.
 package convert
 

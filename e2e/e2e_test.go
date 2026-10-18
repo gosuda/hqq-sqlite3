@@ -16,8 +16,8 @@ import (
 	"testing"
 	"time"
 
-	"gosuda.org/hqq-sqlite3"
-	"gosuda.org/hqq-sqlite3/internal/wire"
+	"gosuda.org/sqlite3"
+	"gosuda.org/sqlite3/internal/wire"
 )
 
 // TestRoundTripValues covers every value type, including NULL and blobs.

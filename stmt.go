@@ -5,8 +5,8 @@ import (
 	"database/sql/driver"
 	"errors"
 
-	"gosuda.org/hqq-sqlite3/sqlite3"
-	"gosuda.org/hqq-sqlite3/internal/convert"
+	"gosuda.org/sqlite3/sqlite3"
+	"gosuda.org/sqlite3/internal/convert"
 )
 
 // stmt is a statement of the session: a statement handle of the server, with the

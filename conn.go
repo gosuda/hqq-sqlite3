@@ -10,10 +10,10 @@ import (
 	"time"
 
 	"gosuda.org/hqq"
-	"gosuda.org/hqq-sqlite3/sqlite3"
+	"gosuda.org/sqlite3/sqlite3"
 	"gosuda.org/hqq/bindgen/rt"
-	"gosuda.org/hqq-sqlite3/internal/convert"
-	"gosuda.org/hqq-sqlite3/internal/wire"
+	"gosuda.org/sqlite3/internal/convert"
+	"gosuda.org/sqlite3/internal/wire"
 )
 
 // Compile-time checks of the database/sql interfaces of the connection types.

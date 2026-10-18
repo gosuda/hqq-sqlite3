@@ -6,9 +6,9 @@ import (
 	"math"
 	"unsafe"
 
-	"gosuda.org/hqq-sqlite3/sqlite3"
-	"gosuda.org/hqq-sqlite3/internal/convert"
-	"gosuda.org/hqq-sqlite3/internal/wire"
+	"gosuda.org/sqlite3/sqlite3"
+	"gosuda.org/sqlite3/internal/convert"
+	"gosuda.org/sqlite3/internal/wire"
 )
 
 // Kinds of the arrays of bind_values and exec_stmt (sqlite3.idl).

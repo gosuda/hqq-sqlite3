@@ -15,8 +15,8 @@ import (
 
 	"gosuda.org/hqq"
 	"gosuda.org/hqq/bindgen/rt"
-	"gosuda.org/hqq-sqlite3/internal/dsn"
-	"gosuda.org/hqq-sqlite3/internal/wire"
+	"gosuda.org/sqlite3/internal/dsn"
+	"gosuda.org/sqlite3/internal/wire"
 )
 
 // DriverName is the name the driver is registered under with database/sql.

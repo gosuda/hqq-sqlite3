@@ -9,7 +9,7 @@ import (
 	"testing"
 	"time"
 
-	"gosuda.org/hqq-sqlite3"
+	"gosuda.org/sqlite3"
 )
 
 // must fails the test when err is not nil.

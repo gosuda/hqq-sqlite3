@@ -10,7 +10,7 @@
 //	import (
 //		"database/sql"
 //
-//		_ "gosuda.org/hqq-sqlite3" // registers "sqlite3"
+//		_ "gosuda.org/sqlite3" // registers "sqlite3"
 //	)
 //
 //	db, err := sql.Open("sqlite3", "hqq://sqlite-svc?db=main&_journal=WAL&_busy_timeout=5000")

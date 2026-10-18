@@ -6,8 +6,8 @@ import (
 	"fmt"
 	"testing"
 
-	"gosuda.org/hqq-sqlite3/sqlite3"
-	"gosuda.org/hqq-sqlite3/sqlite3/sqlite3srv"
+	"gosuda.org/sqlite3/sqlite3"
+	"gosuda.org/sqlite3/sqlite3/sqlite3srv"
 	"gosuda.org/hqq/bindgen/rt"
 )
 

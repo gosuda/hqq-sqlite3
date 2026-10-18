@@ -8,8 +8,8 @@ import (
 	"io"
 	"reflect"
 
-	"gosuda.org/hqq-sqlite3/sqlite3"
-	"gosuda.org/hqq-sqlite3/internal/convert"
+	"gosuda.org/sqlite3/sqlite3"
+	"gosuda.org/sqlite3/internal/convert"
 )
 
 // rows streams the batches of one statement. After it has decoded a batch, it

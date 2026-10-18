@@ -1,11 +1,11 @@
-# hqq-sqlite3 (`gosuda.org/hqq-sqlite3`)
+# hqq-sqlite3 (`gosuda.org/sqlite3`)
 
-`gosuda.org/hqq-sqlite3` is a **zero-`cgo` (`CGO_ENABLED=0`) SQLite `database/sql` driver** powered by HQQ shared-memory IPC. Your Go application compiles as a pure Go binary without linking C objects, while executing the official SQLite C engine in an isolated shared-memory worker process (`hqq-sqlite-server`).
+`gosuda.org/sqlite3` is a **zero-`cgo` (`CGO_ENABLED=0`) SQLite `database/sql` driver** powered by HQQ shared-memory IPC. Your Go application compiles as a pure Go binary without linking C objects, while executing the official SQLite C engine in an isolated shared-memory worker process (`hqq-sqlite-server`).
 
 SLSA-attested prebuilt `hqq-sqlite-server` binaries are embedded per target platform (`//go:build` + `//go:embed`), extracted to the user cache on first use, verified against pinned SHA-256 digests via `gosuda.org/hqq/secureexec`, and bound to the Go parent process lifetime via `--parent-stdin`. No external binary download or C toolchain is required.
 
 ```bash
-go get gosuda.org/hqq-sqlite3
+go get gosuda.org/sqlite3
 ```
 
 ## Supported Platforms
@@ -22,7 +22,7 @@ go get gosuda.org/hqq-sqlite3
 
 ### 1. Drop-In `database/sql` (`"sqlite3"`)
 
-Import `gosuda.org/hqq-sqlite3` to register the `"sqlite3"` driver (drop-in replacement for `github.com/mattn/go-sqlite3`). Opening a file path, `file:` URI, or `:memory:` automatically verifies and launches the embedded `hqq-sqlite-server` worker in the background:
+Import `gosuda.org/sqlite3` to register the `"sqlite3"` driver (drop-in replacement for `github.com/mattn/go-sqlite3`). Opening a file path, `file:` URI, or `:memory:` automatically verifies and launches the embedded `hqq-sqlite-server` worker in the background:
 
 ```go
 package main
@@ -33,7 +33,7 @@ import (
 	"fmt"
 	"log"
 
-	_ "gosuda.org/hqq-sqlite3" // registers "sqlite3"
+	_ "gosuda.org/sqlite3" // registers "sqlite3"
 )
 
 func main() {
@@ -119,7 +119,7 @@ db := sql.OpenDB(conn)
 ```go
 const (
 	DriverName          = "sqlite3"
-	Version             = "v0.1.3540100"
+	Version             = "v0.2.3540100"
 	SQLiteVersionNumber = 3540100
 )
 

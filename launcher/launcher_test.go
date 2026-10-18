@@ -16,11 +16,11 @@ import (
 	"testing"
 	"time"
 
-	"gosuda.org/hqq-sqlite3/internal/launchtest"
+	"gosuda.org/sqlite3/internal/launchtest"
 	"gosuda.org/hqq/launch"
 	"gosuda.org/hqq/secureexec"
 	"gosuda.org/hqq/secureexec/manifest"
-	"gosuda.org/hqq-sqlite3/launcher"
+	"gosuda.org/sqlite3/launcher"
 )
 
 // e2eServerFlags are the link flags of the real server in the tests: quick

@@ -7,9 +7,9 @@ import (
 	"fmt"
 
 	"gosuda.org/hqq"
-	"gosuda.org/hqq-sqlite3/sqlite3"
+	"gosuda.org/sqlite3/sqlite3"
 	"gosuda.org/hqq/bindgen/rt"
-	"gosuda.org/hqq-sqlite3/internal/wire"
+	"gosuda.org/sqlite3/internal/wire"
 )
 
 // SQLite result codes the driver names. The values are those of sqlite3.h.

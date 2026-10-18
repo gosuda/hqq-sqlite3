@@ -1,8 +1,8 @@
 # `launcher`: Verified Child-Process Starter for `hqq-sqlite-server`
 
-`gosuda.org/hqq-sqlite3/launcher` starts the C SQLite server (`hqq-sqlite-server` from [`../sqlite3/server`](../sqlite3/README.md)) as a supervised child process, verifies its SHA-256 digest or ed25519-signed release manifest without a TOCTOU window, attaches a parent lifeline so the server exits if the Go parent dies, and returns a connected `*sql.DB` handle.
+`gosuda.org/sqlite3/launcher` starts the C SQLite server (`hqq-sqlite-server` from [`../sqlite3/server`](../sqlite3/README.md)) as a supervised child process, verifies its SHA-256 digest or ed25519-signed release manifest without a TOCTOU window, attaches a parent lifeline so the server exits if the Go parent dies, and returns a connected `*sql.DB` handle.
 
-The service-agnostic process mechanics (binary verification via `gosuda.org/hqq/secureexec`, `--parent-stdin` lifeline attachment, waiting for the `ready <listener>` handshake line, and graceful/forced shutdown) live in [`gosuda.org/hqq/launch`](https://github.com/gosuda/HQQ/tree/main/launch). This package layers `hqq-sqlite-server`-specific CLI flag construction (`--allow-dir`, `--alias`, `--max-sessions`, `--perm`), the embedded release public key, and `gosuda.org/hqq-sqlite3` `database/sql` handle creation on top of `launch`. `Server`, `StartError`, and `ReadyTimeoutError` are type aliases of the corresponding `launch` types, and `ErrConfig`, `ErrManifest`, `ErrNoArtifact`, `ErrReadyTimeout`, and `ErrStopTimeout` alias the `launch` sentinel errors so `errors.Is` matches either package.
+The service-agnostic process mechanics (binary verification via `gosuda.org/hqq/secureexec`, `--parent-stdin` lifeline attachment, waiting for the `ready <listener>` handshake line, and graceful/forced shutdown) live in [`gosuda.org/hqq/launch`](https://github.com/gosuda/HQQ/tree/main/launch). This package layers `hqq-sqlite-server`-specific CLI flag construction (`--allow-dir`, `--alias`, `--max-sessions`, `--perm`), the embedded release public key, and `gosuda.org/sqlite3` `database/sql` handle creation on top of `launch`. `Server`, `StartError`, and `ReadyTimeoutError` are type aliases of the corresponding `launch` types, and `ErrConfig`, `ErrManifest`, `ErrNoArtifact`, `ErrReadyTimeout`, and `ErrStopTimeout` alias the `launch` sentinel errors so `errors.Is` matches either package.
 
 ```go
 m, err := launcher.OpenManaged(ctx, cfg,
@@ -72,7 +72,7 @@ import (
 	"os"
 	"path/filepath"
 
-	"gosuda.org/hqq-sqlite3/launcher"
+	"gosuda.org/sqlite3/launcher"
 	"gosuda.org/hqq/secureexec/manifest"
 )
 
@@ -128,7 +128,7 @@ Before cutting a signed manifest release, generate a production key pair with `h
 2. Copy the binary into `dist/hqq-sqlite-server_<os>_<arch>[.exe]`.
 3. Generate `manifest.json`:
    ```sh
-   go run gosuda.org/hqq/cmd/hqq-manifest gen -dir dist -name hqq-sqlite-server -release v0.1.3540100 -license MIT -out dist/manifest.json
+   go run gosuda.org/hqq/cmd/hqq-manifest gen -dir dist -name hqq-sqlite-server -release v0.2.3540100 -license MIT -out dist/manifest.json
    ```
 4. Sign the manifest:
    ```sh

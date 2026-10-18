@@ -5,7 +5,7 @@ import (
 	"database/sql"
 	"errors"
 
-	"gosuda.org/hqq-sqlite3"
+	"gosuda.org/sqlite3"
 )
 
 // OpenOption configures the database connection made by Open and OpenManaged.

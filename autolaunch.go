@@ -8,7 +8,7 @@ import (
 	"runtime"
 	"sync"
 
-	"gosuda.org/hqq-sqlite3/internal/embedded"
+	"gosuda.org/sqlite3/internal/embedded"
 	"gosuda.org/hqq/launch"
 	"gosuda.org/hqq/secureexec"
 )

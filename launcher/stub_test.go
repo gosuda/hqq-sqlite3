@@ -12,9 +12,9 @@ import (
 	"testing"
 	"time"
 
-	"gosuda.org/hqq-sqlite3/internal/launchtest"
+	"gosuda.org/sqlite3/internal/launchtest"
 	"gosuda.org/hqq/secureexec"
-	"gosuda.org/hqq-sqlite3/launcher"
+	"gosuda.org/sqlite3/launcher"
 )
 
 const (

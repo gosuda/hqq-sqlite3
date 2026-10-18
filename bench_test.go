@@ -10,7 +10,7 @@ import (
 	"sync"
 	"testing"
 
-	_ "gosuda.org/hqq-sqlite3" // registers sqlite3
+	_ "gosuda.org/sqlite3" // registers sqlite3
 )
 
 // Benchmarks of the driver (sqlite3) through database/sql.

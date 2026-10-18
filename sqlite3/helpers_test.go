@@ -10,7 +10,7 @@ import (
 	"strings"
 	"testing"
 
-	"gosuda.org/hqq-sqlite3/sqlite3"
+	"gosuda.org/sqlite3/sqlite3"
 	"gosuda.org/hqq/bindgen/rt"
 )
 

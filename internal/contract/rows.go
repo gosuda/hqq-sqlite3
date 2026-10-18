@@ -10,7 +10,7 @@ import (
 	"testing"
 	"time"
 
-	"gosuda.org/hqq-sqlite3"
+	"gosuda.org/sqlite3"
 )
 
 // fill inserts rows 1..n with v set to the decimal id, in one transaction.

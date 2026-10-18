@@ -1,4 +1,4 @@
-module gosuda.org/hqq-sqlite3
+module gosuda.org/sqlite3
 
 go 1.24.0
 

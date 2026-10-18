@@ -6,7 +6,7 @@ import (
 	"fmt"
 	"testing"
 
-	"gosuda.org/hqq-sqlite3"
+	"gosuda.org/sqlite3"
 )
 
 // seededTable creates a table with a unique name and inserts the row (1, 'base').

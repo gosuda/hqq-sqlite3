@@ -8,9 +8,9 @@ import (
 	"testing"
 	"time"
 
-	"gosuda.org/hqq-sqlite3/sqlite3/sqlite3srv"
-	"gosuda.org/hqq-sqlite3"
-	"gosuda.org/hqq-sqlite3/internal/contract"
+	"gosuda.org/sqlite3/sqlite3/sqlite3srv"
+	"gosuda.org/sqlite3"
+	"gosuda.org/sqlite3/internal/contract"
 )
 
 func TestMain(m *testing.M) {

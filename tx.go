@@ -6,7 +6,7 @@ import (
 	"errors"
 	"fmt"
 
-	"gosuda.org/hqq-sqlite3/sqlite3"
+	"gosuda.org/sqlite3/sqlite3"
 )
 
 // tx is a transaction of a session. The session holds it until Commit or
