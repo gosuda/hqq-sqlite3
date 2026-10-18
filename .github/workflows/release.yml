@@ -1,0 +1,54 @@
+name: Release
+
+on:
+  push:
+    tags:
+      - 'v*.*.*'
+
+permissions:
+  contents: write
+  id-token: write
+  attestations: write
+
+jobs:
+  build:
+    strategy:
+      fail-fast: true
+      matrix:
+        include:
+          - goos: linux
+            goarch: amd64
+            runner: ubuntu-24.04
+          - goos: linux
+            goarch: arm64
+            runner: ubuntu-24.04-arm
+          - goos: darwin
+            goarch: arm64
+            runner: macos-14
+          - goos: darwin
+            goarch: amd64
+            runner: macos-13
+          - goos: windows
+            goarch: amd64
+            runner: windows-2022
+    runs-on: ${{ matrix.runner }}
+    steps:
+      - uses: actions/checkout@v4
+      - name: Build hqq-sqlite-server (${{ matrix.goos }}/${{ matrix.goarch }})
+        shell: bash
+        run: |
+          adir=$(scripts/release/fetch-sqlite.sh)
+          cmake -S sqlite3/server -B /tmp/hqq-sqlite-build -G Ninja -DCMAKE_BUILD_TYPE=Release -DHQQ_SQLITE_AMALGAMATION_DIR="$adir"
+          cmake --build /tmp/hqq-sqlite-build --target hqq-sqlite-server
+          mkdir -p dist
+          ext=""
+          if [ "${{ matrix.goos }}" = "windows" ]; then ext=".exe"; fi
+          cp "/tmp/hqq-sqlite-build/hqq-sqlite-server${ext}" "dist/hqq-sqlite-server_${{ matrix.goos }}_${{ matrix.goarch }}${ext}"
+      - name: Attest SLSA Build Provenance
+        uses: actions/attest-build-provenance@v2
+        with:
+          subject-path: 'dist/hqq-sqlite-server_*'
+      - uses: actions/upload-artifact@v4
+        with:
+          name: bin-${{ matrix.goos }}-${{ matrix.goarch }}
+          path: dist/*
