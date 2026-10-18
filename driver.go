@@ -7,6 +7,9 @@ import (
 	"errors"
 	"fmt"
 	"io"
+	"os"
+	"path/filepath"
+	"strings"
 	"sync"
 	"time"
 
@@ -51,13 +54,64 @@ func (d *Driver) OpenConnector(dsn string) (driver.Connector, error) {
 	return ConnectorFromDSN(dsn)
 }
 
-// ConnectorFromDSN parses dsn (see ParseDSN) and returns a Connector for it.
-func ConnectorFromDSN(dsn string) (*Connector, error) {
-	listener, cfg, err := ParseDSN(dsn)
+// ConnectorFromDSN parses dsn and returns a Connector for it. Both explicit
+// HQQ service URIs (hqq://<listener>?db=...) and standard SQLite file or
+// :memory: DSNs (such as "app.db?_journal=WAL", "file:app.db?_fk=1", or
+// ":memory:") are supported; file and :memory: DSNs automatically verify and
+// start the embedded hqq-sqlite-server worker on first connection.
+func ConnectorFromDSN(s string) (*Connector, error) {
+	if isExplicitHQQDSN(s) {
+		listener, cfg, err := ParseDSN(s)
+		if err != nil {
+			return nil, err
+		}
+		return NewConnector(listener, cfg)
+	}
+	o, err := dsn.ParseFile(s)
 	if err != nil {
 		return nil, err
 	}
-	return NewConnector(listener, cfg)
+	cfg := configFromOptions(o)
+	var allowDir, cleanupDir string
+	if o.Database == ":memory:" {
+		tmp, err := os.MkdirTemp("", "hqq-sqlite-mem-*")
+		if err != nil {
+			return nil, fmt.Errorf("sqlite: create temp directory for :memory: database: %w", err)
+		}
+		allowDir = tmp
+		cleanupDir = tmp
+		cfg.Database = "memory.db"
+	} else {
+		abs, err := filepath.Abs(o.Database)
+		if err != nil {
+			return nil, fmt.Errorf("sqlite: resolve database path %q: %w", o.Database, err)
+		}
+		allowDir = filepath.Dir(abs)
+		cfg.Database = filepath.Base(abs)
+	}
+	cfg, err = cfg.normalized()
+	if err != nil {
+		if cleanupDir != "" {
+			_ = os.RemoveAll(cleanupDir)
+		}
+		return nil, err
+	}
+	return &Connector{
+		cfg:          cfg,
+		autoAllowDir: allowDir,
+		cleanupDir:   cleanupDir,
+	}, nil
+}
+
+func isExplicitHQQDSN(s string) bool {
+	rawPath, _, _ := strings.Cut(s, "?")
+	if strings.HasPrefix(strings.ToLower(rawPath), "hqq:") {
+		return true
+	}
+	if idx := strings.Index(rawPath, "://"); idx >= 0 {
+		return !strings.EqualFold(rawPath[:idx], "file")
+	}
+	return false
 }
 
 // Mode is the open mode of the database.
@@ -187,6 +241,10 @@ func ParseDSN(s string) (string, Config, error) {
 	if err != nil {
 		return "", Config{}, err
 	}
+	return o.Listener, configFromOptions(o), nil
+}
+
+func configFromOptions(o dsn.Options) Config {
 	cfg := Config{
 		Database:    o.Database,
 		Mode:        Mode(o.Mode),
@@ -199,15 +257,18 @@ func ParseDSN(s string) (string, Config, error) {
 	for _, p := range o.Pragmas {
 		cfg.Pragmas = append(cfg.Pragmas, Pragma{Name: p.Name, Value: p.Value})
 	}
-	return o.Listener, cfg, nil
+	return cfg
 }
 
 // Connector connects to one service. Every connection is its own session of
 // the generated client, with its own shared-memory link. Connector implements
 // io.Closer; sql.DB calls Close when the DB is closed.
 type Connector struct {
-	listener string
-	cfg      Config
+	listener     string
+	cfg          Config
+	autoAllowDir string
+	cleanupDir   string
+	autoRelease  func() error
 
 	mu     sync.Mutex
 	closed bool
@@ -231,18 +292,53 @@ func NewConnector(listener string, cfg Config) (*Connector, error) {
 func (c *Connector) Driver() driver.Driver { return &Driver{} }
 
 // Close marks the connector closed: further Connect calls fail. Connections
-// already open stay usable until database/sql closes them.
+// already open stay usable until database/sql closes them. When the connector
+// auto-started an embedded server, Close releases its reference and stops the
+// server once the last reference closes.
 func (c *Connector) Close() error {
 	c.mu.Lock()
 	c.closed = true
+	rel := c.autoRelease
+	c.autoRelease = nil
+	cleanDir := c.cleanupDir
+	c.cleanupDir = ""
 	c.mu.Unlock()
-	return nil
+
+	var err error
+	if rel != nil {
+		err = rel()
+	}
+	if cleanDir != "" {
+		_ = os.RemoveAll(cleanDir)
+	}
+	return err
 }
 
 func (c *Connector) isClosed() bool {
 	c.mu.Lock()
 	defer c.mu.Unlock()
 	return c.closed
+}
+
+func (c *Connector) ensureListener(ctx context.Context) (string, error) {
+	c.mu.Lock()
+	defer c.mu.Unlock()
+	if c.closed {
+		return "", errConnectorClosed
+	}
+	if c.listener != "" {
+		return c.listener, nil
+	}
+	if c.autoAllowDir == "" {
+		return "", errors.New("sqlite: listener name is empty")
+	}
+	listener, rel, err := acquireAutoServer(ctx, c.autoAllowDir)
+	if err != nil {
+		return "", err
+	}
+	c.listener = listener
+	c.autoRelease = rel
+	return listener, nil
 }
 
 type txModeKey struct{}

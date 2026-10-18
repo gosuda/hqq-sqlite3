@@ -55,8 +55,9 @@ type Options struct {
 	Pragmas  []Pragma // sorted by name
 }
 
-// Parse parses a DSN. Unknown options are errors, so misspelled options are
-// not ignored. Every option and target PRAGMA may appear at most once.
+// Parse parses a DSN of the form hqq://<listener>?<options>. Unknown options
+// are errors, so misspelled options are not ignored. Every option and target
+// PRAGMA may appear at most once.
 func Parse(dsn string) (Options, error) {
 	var o Options
 	u, err := url.Parse(dsn)
@@ -69,7 +70,52 @@ func Parse(dsn string) (Options, error) {
 	if u.Host == "" || u.Path != "" || u.User != nil {
 		return o, errors.New("sqlite: DSN must be hqq://<listener>?<options>")
 	}
-	q := u.Query()
+	if err := applyQuery(&o, u.Query(), true); err != nil {
+		return o, err
+	}
+	if o.Database == "" {
+		return o, errors.New("sqlite: DSN option db is required")
+	}
+	o.Listener = u.Host
+	return o, nil
+}
+
+// ParseFile parses a file-based or :memory: DSN compatible with
+// github.com/mattn/go-sqlite3 (such as "app.db?_journal=WAL",
+// "file:app.db?_fk=1", or ":memory:").
+func ParseFile(dsn string) (Options, error) {
+	var o Options
+	rawPath, rawQuery, _ := strings.Cut(dsn, "?")
+	if idx := strings.Index(rawPath, "://"); idx >= 0 {
+		scheme := rawPath[:idx]
+		if !strings.EqualFold(scheme, "file") {
+			return o, fmt.Errorf("sqlite: unsupported DSN scheme %q", scheme)
+		}
+		rawPath = rawPath[idx+3:]
+		if p, err := url.PathUnescape(rawPath); err == nil {
+			rawPath = p
+		}
+	} else if len(rawPath) >= 5 && strings.EqualFold(rawPath[:5], "file:") {
+		rawPath = rawPath[5:]
+		if p, err := url.PathUnescape(rawPath); err == nil {
+			rawPath = p
+		}
+	}
+	if rawPath == "" || strings.HasPrefix(rawPath, "::") || strings.ContainsRune(rawPath, 0) {
+		return o, fmt.Errorf("sqlite: invalid database path in DSN %q", dsn)
+	}
+	q, err := url.ParseQuery(rawQuery)
+	if err != nil {
+		return o, fmt.Errorf("sqlite: invalid DSN query: %w", err)
+	}
+	if err := applyQuery(&o, q, false); err != nil {
+		return o, err
+	}
+	o.Database = rawPath
+	return o, nil
+}
+
+func applyQuery(o *Options, q url.Values, allowDBKey bool) error {
 	var (
 		pragmas    []Pragma
 		seenPragma = make(map[string]bool)
@@ -88,18 +134,28 @@ func Parse(dsn string) (Options, error) {
 
 	for key, vals := range q {
 		if len(vals) != 1 {
-			return o, fmt.Errorf("sqlite: option %s must be given once", key)
+			return fmt.Errorf("sqlite: option %s must be given once", key)
 		}
 		v := vals[0]
 		if strings.HasPrefix(key, "pragma.") {
 			if err := addPragma(strings.TrimPrefix(key, "pragma."), v); err != nil {
-				return o, err
+				return err
 			}
 			continue
 		}
+		var err error
 		switch key {
 		case "db":
+			if !allowDBKey {
+				return errors.New("sqlite: option db is not allowed in a file DSN")
+			}
 			o.Database = v
+		case "cache":
+			switch strings.ToLower(v) {
+			case "shared", "private":
+			default:
+				return fmt.Errorf("sqlite: invalid cache %q", v)
+			}
 		case "mode":
 			switch v {
 			case "rwc", "":
@@ -109,19 +165,19 @@ func Parse(dsn string) (Options, error) {
 			case "ro":
 				o.Mode = ModeReadOnly
 			default:
-				return o, fmt.Errorf("sqlite: invalid mode %q", v)
+				return fmt.Errorf("sqlite: invalid mode %q", v)
 			}
 		case "timeout":
 			o.Timeout, err = parseDuration(key, v)
 		case "busy":
 			if seenBusy {
-				return o, errors.New("sqlite: busy timeout specified more than once")
+				return errors.New("sqlite: busy timeout specified more than once")
 			}
 			seenBusy = true
 			o.Busy, err = parseDuration(key, v)
 		case "_busy_timeout", "_timeout":
 			if seenBusy {
-				return o, errors.New("sqlite: busy timeout specified more than once")
+				return errors.New("sqlite: busy timeout specified more than once")
 			}
 			seenBusy = true
 			o.Busy, err = parseBusyTimeout(key, v)
@@ -132,7 +188,7 @@ func Parse(dsn string) (Options, error) {
 			}
 		case "txlock", "_txlock":
 			if seenTxLock {
-				return o, errors.New("sqlite: txlock specified more than once")
+				return errors.New("sqlite: txlock specified more than once")
 			}
 			seenTxLock = true
 			switch strings.ToLower(v) {
@@ -143,11 +199,11 @@ func Parse(dsn string) (Options, error) {
 			case "exclusive":
 				o.TxLock = TxExclusive
 			default:
-				return o, fmt.Errorf("sqlite: invalid %s %q", key, v)
+				return fmt.Errorf("sqlite: invalid %s %q", key, v)
 			}
 		case "loc", "_loc":
 			if seenLoc {
-				return o, errors.New("sqlite: loc specified more than once")
+				return errors.New("sqlite: loc specified more than once")
 			}
 			seenLoc = true
 			o.Location, err = parseLocation(key, v)
@@ -183,39 +239,35 @@ func Parse(dsn string) (Options, error) {
 			}
 		case "_cache_size":
 			if _, perr := strconv.ParseInt(v, 10, 64); perr != nil {
-				return o, fmt.Errorf("sqlite: invalid %s %q", key, v)
+				return fmt.Errorf("sqlite: invalid %s %q", key, v)
 			}
 			err = addPragma("cache_size", v)
 		case "_mmap_size":
 			if n, perr := strconv.ParseInt(v, 10, 64); perr != nil || n < 0 {
-				return o, fmt.Errorf("sqlite: invalid %s %q", key, v)
+				return fmt.Errorf("sqlite: invalid %s %q", key, v)
 			}
 			err = addPragma("mmap_size", v)
 		case "_page_size":
 			n, perr := strconv.Atoi(v)
 			if perr != nil || n < 512 || n > 65536 || n&(n-1) != 0 {
-				return o, fmt.Errorf("sqlite: invalid %s %q", key, v)
+				return fmt.Errorf("sqlite: invalid %s %q", key, v)
 			}
 			err = addPragma("page_size", v)
 		case "_wal_autocheckpoint":
 			if _, perr := strconv.ParseInt(v, 10, 32); perr != nil {
-				return o, fmt.Errorf("sqlite: invalid %s %q", key, v)
+				return fmt.Errorf("sqlite: invalid %s %q", key, v)
 			}
 			err = addPragma("wal_autocheckpoint", v)
 		default:
-			return o, fmt.Errorf("sqlite: unknown DSN option %q", key)
+			return fmt.Errorf("sqlite: unknown DSN option %q", key)
 		}
 		if err != nil {
-			return o, err
+			return err
 		}
-	}
-	if o.Database == "" {
-		return o, errors.New("sqlite: DSN option db is required")
 	}
 	sort.Slice(pragmas, func(i, j int) bool { return pragmas[i].Name < pragmas[j].Name })
 	o.Pragmas = pragmas
-	o.Listener = u.Host
-	return o, nil
+	return nil
 }
 
 func parseDuration(key, v string) (time.Duration, error) {

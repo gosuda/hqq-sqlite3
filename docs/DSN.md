@@ -1,12 +1,31 @@
 # DSN Reference and Control Knobs (`gosuda.org/hqq-sqlite3`)
 
-`gosuda.org/hqq-sqlite3` parses connection strings of the form `hqq://<listener>?<query>` and translates query parameters into session transport settings, transaction lock modes, timezone locations, and `PRAGMA` statements executed when each `database/sql` connection opens. Both explicit driver keys (`busy`, `txlock`, `pragma.<name>`) and standard SQLite driver underscore-prefixed control knobs (`_busy_timeout`, `_txlock`, `_fk`, `_journal_mode`, `_synchronous`, `_loc`, and others) are supported so existing Go SQLite applications can migrate without rewriting connection query strings.
+`gosuda.org/hqq-sqlite3` accepts both standard SQLite file / `:memory:` DSN strings (`app.db?_journal=WAL`, `file:app.db?mode=ro`, `:memory:`) and explicit listener URIs (`hqq://<listener>?db=<alias-or-path>`). Query parameters are translated into session transport settings, transaction lock modes, timezone locations, and `PRAGMA` statements executed when each `database/sql` connection opens. Both explicit driver keys (`busy`, `txlock`, `pragma.<name>`) and standard SQLite driver underscore-prefixed control knobs (`_busy_timeout`, `_txlock`, `_fk`, `_journal_mode`, `_synchronous`, `_loc`, and others) are supported so existing `github.com/mattn/go-sqlite3` applications can migrate without rewriting connection strings.
 
 ---
 
-## 1. DSN URI Syntax
+## 1. DSN Syntax
 
-Every `sql.Open("sqlite3", dsn)` call expects a URI with the `hqq://` scheme:
+### 1.1 Drop-In File and `:memory:` DSNs (Auto-Launched Server)
+
+When `sql.Open("sqlite3", dsn)` or `sqlite.ConnectorFromDSN(dsn)` is called with a file path, `file:` URI, or `:memory:` (without the `hqq://` scheme), the driver automatically extracts the embedded `hqq-sqlite-server` binary for the current OS/Arch, verifies its SHA-256 digest via `secureexec`, and starts a background shared-memory server scoped to the database file's directory:
+
+```text
+<path-or-:memory:>[?<key>=<value>...]
+file:<path-or-:memory:>[?<key>=<value>...]
+```
+
+```go
+// File path with standard control knobs:
+db, err := sql.Open("sqlite3", "app.db?_journal=WAL&_sync=NORMAL&_fk=1&_busy_timeout=5000&_txlock=immediate")
+
+// In-memory database:
+memDB, err := sql.Open("sqlite3", ":memory:")
+```
+
+### 1.2 Explicit Listener URI (`hqq://`)
+
+To connect to a specific `hqq-sqlite-server` listener started via `launcher.Start` or externally, use the `hqq://` scheme:
 
 ```text
 hqq://<listener>?db=<alias-or-path>[&<key>=<value>...]
@@ -17,8 +36,6 @@ hqq://<listener>?db=<alias-or-path>[&<key>=<value>...]
 | Scheme | Must be `hqq`. | `hqq://` |
 | Host (`<listener>`) | HQQ listener name of the running `hqq-sqlite-server` instance. No port, path, userinfo, or fragment is permitted. | `sqlite-svc` |
 | Query (`?<key>=<value>`) | URL-encoded key-value pairs. Must include `db`. Unknown keys, empty values, or duplicate/conflicting keys fail during `ParseDSN`. | `?db=main&_journal=WAL&_busy_timeout=5000` |
-
-Example DSN with standard control knobs:
 
 ```go
 db, err := sql.Open(

@@ -11,6 +11,7 @@ import (
 	"strings"
 	"time"
 
+	"gosuda.org/hqq-sqlite3"
 	"gosuda.org/hqq/launch"
 	"gosuda.org/hqq/secureexec"
 )
@@ -174,6 +175,13 @@ func (c Config) launchConfig() (launch.Config, error) {
 			PublicKey: pub,
 			Dir:       c.Manifest.Dir,
 		}
+	} else if lc.Binary == "" && lc.SHA256 == (secureexec.Hash{}) {
+		bin, hash, err := sqlite.ServerBinary()
+		if err != nil {
+			return launch.Config{}, err
+		}
+		lc.Binary = bin
+		lc.SHA256 = hash
 	}
 	return lc, nil
 }

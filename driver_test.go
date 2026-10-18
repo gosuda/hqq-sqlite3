@@ -759,3 +759,49 @@ func TestStatementClearsOldBindings(t *testing.T) {
 		t.Fatalf("no arguments: %v, want both parameters NULL", got)
 	}
 }
+
+func TestDropInAutoLaunch(t *testing.T) {
+	dir := t.TempDir()
+	dbPath := filepath.Join(dir, "dropin.db")
+
+	db, err := sql.Open("sqlite3", dbPath+"?_journal=WAL&_fk=1&_busy_timeout=1500")
+	if err != nil {
+		t.Fatal(err)
+	}
+	defer db.Close()
+
+	if n := queryInt(t, db, "PRAGMA foreign_keys"); n != 1 {
+		t.Fatalf("foreign_keys = %d, want 1", n)
+	}
+	if n := queryInt(t, db, "PRAGMA busy_timeout"); n != 1500 {
+		t.Fatalf("busy_timeout = %d, want 1500", n)
+	}
+	mustExec(t, db, "CREATE TABLE items (id INTEGER PRIMARY KEY, name TEXT)")
+	mustExec(t, db, "INSERT INTO items (name) VALUES (?)", "alpha")
+
+	// Opening a second database via file: URI in the same directory shares the auto-started server.
+	uriDSN := "file:" + dbPath + "?mode=ro"
+	roDB, err := sql.Open("sqlite3", uriDSN)
+	if err != nil {
+		t.Fatal(err)
+	}
+	defer roDB.Close()
+
+	var name string
+	if err := roDB.QueryRow("SELECT name FROM items WHERE id = 1").Scan(&name); err != nil || name != "alpha" {
+		t.Fatalf("read via file: URI = %q, %v; want alpha", name, err)
+	}
+
+	// Opening :memory: creates an isolated temporary database cleaned up on Close.
+	memDB, err := sql.Open("sqlite3", ":memory:?cache=shared&_fk=1")
+	if err != nil {
+		t.Fatal(err)
+	}
+	defer memDB.Close()
+	mustExec(t, memDB, "CREATE TABLE m (x INTEGER)")
+	mustExec(t, memDB, "INSERT INTO m VALUES (42)")
+	if got := queryInt(t, memDB, "SELECT x FROM m"); got != 42 {
+		t.Fatalf(":memory: query = %d, want 42", got)
+	}
+}
+

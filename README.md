@@ -2,102 +2,98 @@
 
 `gosuda.org/hqq-sqlite3` is a **zero-`cgo` (`CGO_ENABLED=0`) SQLite `database/sql` driver** powered by HQQ shared-memory IPC. Your Go application compiles as a pure Go binary without linking C objects, while executing the official SQLite C engine in an isolated shared-memory worker process (`hqq-sqlite-server`).
 
+SLSA-attested prebuilt `hqq-sqlite-server` binaries are embedded per target platform (`//go:build` + `//go:embed`), extracted to the user cache on first use, verified against pinned SHA-256 digests via `gosuda.org/hqq/secureexec`, and bound to the Go parent process lifetime via `--parent-stdin`. No external binary download or C toolchain is required.
+
 ```bash
 go get gosuda.org/hqq-sqlite3
 ```
 
 ## Supported Platforms
 
-| OS | Architectures | Prebuilt `hqq-sqlite-server` Release Asset |
+| OS | Architectures | Embedded & SLSA-Attested Release Binary |
 | :--- | :--- | :--- |
-| **Linux** | `amd64`, `arm64` | `hqq-sqlite-server_linux_amd64`, `hqq-sqlite-server_linux_arm64` |
-| **macOS** | `arm64` (Apple Silicon), `amd64` | `hqq-sqlite-server_darwin_arm64`, `hqq-sqlite-server_darwin_amd64` |
-| **Windows** | `amd64`, `arm64` | `hqq-sqlite-server_windows_amd64.exe` (`arm64` via source build) |
+| **Linux** | `amd64`, `arm64` | `hqq-sqlite-server_linux_amd64`, `hqq-sqlite-server_linux_arm64` (embedded) |
+| **macOS** | `arm64` (Apple Silicon), `amd64` | `hqq-sqlite-server_darwin_arm64`, `hqq-sqlite-server_darwin_amd64` (embedded) |
+| **Windows** | `amd64`, `arm64` | `hqq-sqlite-server_windows_amd64.exe`, `hqq-sqlite-server_windows_arm64.exe` (embedded) |
 
 ---
 
 ## Quickstart
 
-### 1. Managed Server + `*sql.DB` (`launcher.OpenManaged`)
+### 1. Drop-In `database/sql` (`"sqlite3"`)
 
-`launcher.OpenManaged` verifies the `hqq-sqlite-server` binary digest, starts the shared-memory worker bound to the parent process lifetime, and returns a connected `*sql.DB`:
+Import `gosuda.org/hqq-sqlite3` to register the `"sqlite3"` driver (drop-in replacement for `github.com/mattn/go-sqlite3`). Opening a file path, `file:` URI, or `:memory:` automatically verifies and launches the embedded `hqq-sqlite-server` worker in the background:
 
 ```go
 package main
 
 import (
 	"context"
+	"database/sql"
 	"fmt"
 	"log"
-	"runtime"
-	"time"
 
-	sqlite "gosuda.org/hqq-sqlite3"
-	"gosuda.org/hqq-sqlite3/launcher"
+	_ "gosuda.org/hqq-sqlite3" // registers "sqlite3"
 )
 
 func main() {
 	ctx := context.Background()
 
-	hash, ok := sqlite.ExpectedHash(runtime.GOOS, runtime.GOARCH)
-	if !ok {
-		log.Fatalf("no pinned digest for %s/%s", runtime.GOOS, runtime.GOARCH)
-	}
-
-	m, err := launcher.OpenManaged(ctx, launcher.Config{
-		Binary:   "/opt/hqq/bin/hqq-sqlite-server",
-		SHA256:   hash,
-		AllowDir: "/var/lib/myapp/db",
-		Aliases:  map[string]string{"main": "/var/lib/myapp/db/app.db"},
-	},
-		launcher.WithDatabase("main"),
-		launcher.WithSQLiteConfig(sqlite.Config{
-			Timeout:     5 * time.Second,
-			BusyTimeout: 5 * time.Second,
-			Pragmas: map[string]string{
-				"journal_mode": "WAL",
-				"synchronous":  "NORMAL",
-				"foreign_keys": "1",
-			},
-		}),
+	db, err := sql.Open(
+		"sqlite3",
+		"app.db?_journal=WAL&_sync=NORMAL&_fk=1&_busy_timeout=5000&_txlock=immediate",
 	)
 	if err != nil {
 		log.Fatal(err)
 	}
-	defer m.Close()
+	defer db.Close()
 
 	var version string
-	if err := m.DB.QueryRowContext(ctx, "SELECT sqlite_version()").Scan(&version); err != nil {
+	if err := db.QueryRowContext(ctx, "SELECT sqlite_version()").Scan(&version); err != nil {
 		log.Fatal(err)
 	}
 	fmt.Println("SQLite version:", version)
 }
 ```
 
-### 2. Standard `database/sql` DSN (`"sqlite3"`)
+### 2. Managed Server + `*sql.DB` (`launcher.OpenManaged`)
 
-Import `gosuda.org/hqq-sqlite3` to register the `"sqlite3"` driver (matching `github.com/mattn/go-sqlite3`) and open a connection via `sql.Open`:
+For explicit directory sandboxing (`AllowDir`) and alias mappings, `launcher.OpenManaged` starts a dedicated worker process (using the embedded binary automatically when `Binary` is omitted) and returns a connected `*sql.DB`:
 
 ```go
-import (
-	"database/sql"
-
-	_ "gosuda.org/hqq-sqlite3" // registers "sqlite3"
-)
-
-db, err := sql.Open(
-	"sqlite3",
-	"hqq://sqlite-svc?db=main&_journal=WAL&_sync=NORMAL&_fk=1&_busy_timeout=5000&_txlock=immediate",
+m, err := launcher.OpenManaged(ctx, launcher.Config{
+	AllowDir: "/var/lib/myapp/db",
+	Aliases:  map[string]string{"main": "/var/lib/myapp/db/app.db"},
+},
+	launcher.WithDatabase("main"),
+	launcher.WithSQLiteConfig(sqlite.Config{
+		Timeout:     5 * time.Second,
+		BusyTimeout: 5 * time.Second,
+		Pragmas: map[string]string{
+			"journal_mode": "WAL",
+			"synchronous":  "NORMAL",
+			"foreign_keys": "1",
+		},
+	}),
 )
 if err != nil {
 	return err
 }
-defer db.Close()
+defer m.Close()
 ```
 
-### 3. Structured Connector (`sqlite.NewConnector`)
+### 3. Explicit Listener DSN or Structured Connector (`hqq://`, `sqlite.NewConnector`)
+
+When connecting to a pre-started `hqq-sqlite-server` listener:
 
 ```go
+// Via hqq:// DSN:
+db, err := sql.Open(
+	"sqlite3",
+	"hqq://sqlite-svc?db=main&_journal=WAL&_sync=NORMAL&_fk=1&_busy_timeout=5000",
+)
+
+// Or via structured Config:
 conn, err := sqlite.NewConnector("sqlite-svc", sqlite.Config{
 	Database:    "main",
 	Mode:        sqlite.ModeReadWriteCreate,
@@ -111,11 +107,7 @@ conn, err := sqlite.NewConnector("sqlite-svc", sqlite.Config{
 		"foreign_keys": "1",
 	},
 })
-if err != nil {
-	return err
-}
 db := sql.OpenDB(conn)
-defer db.Close()
 ```
 
 ---
@@ -161,6 +153,7 @@ func NewConnector(listener string, cfg Config) (*Connector, error)
 func ConnectorFromDSN(dsn string) (*Connector, error)
 func ParseDSN(dsn string) (listener string, cfg Config, err error)
 func WithTxMode(ctx context.Context, mode TxMode) context.Context
+func ServerBinary() (path string, hash secureexec.Hash, err error)
 func ExpectedHash(goos, goarch string) (secureexec.Hash, bool)
 ```
 

@@ -98,6 +98,10 @@ func (c *Connector) Connect(ctx context.Context) (driver.Conn, error) {
 	}
 	ctx, cancel := context.WithTimeout(ctx, c.cfg.Timeout)
 	defer cancel()
+	listener, err := c.ensureListener(ctx)
+	if err != nil {
+		return nil, err
+	}
 	opts := c.cfg.Session
 	if opts.Link == (hqq.LinkOptions{}) && c.cfg.Link.Advanced.Link != (hqq.LinkOptions{}) {
 		opts.Link = c.cfg.Link.Advanced.Link
@@ -114,7 +118,7 @@ func (c *Connector) Connect(ctx context.Context) (driver.Conn, error) {
 	if opts.CloseTimeout == 0 {
 		opts.CloseTimeout = c.cfg.Timeout
 	}
-	cl, err := sqlite3.Dial(ctx, c.listener, opts)
+	cl, err := sqlite3.Dial(ctx, listener, opts)
 	if err != nil {
 		// A bootstrap refusal due to --max-sessions or buffer geometry wraps both
 		// *ProtocolError (Code: ProtoLimit) and the *rt.OpenError.
@@ -126,10 +130,10 @@ func (c *Connector) Connect(ctx context.Context) (driver.Conn, error) {
 		// retry it at once. Either the caller's context or the session's own connect
 		// timeout ended it.
 		if cerr := ctx.Err(); cerr != nil {
-			return nil, fmt.Errorf("sqlite: connecting to %q: %w (%w)", c.listener, cerr, err)
+			return nil, fmt.Errorf("sqlite: connecting to %q: %w (%w)", listener, cerr, err)
 		}
 		if errors.Is(err, hqq.ErrTimeout) {
-			return nil, fmt.Errorf("sqlite: connecting to %q: %w", c.listener, err)
+			return nil, fmt.Errorf("sqlite: connecting to %q: %w", listener, err)
 		}
 		return nil, transportError(err)
 	}
