@@ -9,7 +9,7 @@ on:
   workflow_dispatch:
 
 concurrency:
-  group: sqlite-${{ github.event_name }}-${{ github.event.pull_request.number || github.ref }}
+  group: ${{ github.workflow }}-${{ github.event_name }}-${{ github.event.pull_request.number || github.run_id }}
   cancel-in-progress: ${{ github.event_name == 'pull_request' }}
 
 permissions:
@@ -37,6 +37,9 @@ jobs:
         with:
           go-version-file: go.mod
           cache: true
+          cache-dependency-path: |
+            go.mod
+            go.sum
       - name: Install Ninja
         run: |
           if [ "$(uname -s)" = "Linux" ]; then
@@ -61,4 +64,4 @@ jobs:
         run: |
           eval "$(sqlite3/build.sh -T)"
           go vet ./...
-          go test -p 1 -v -race -timeout 10m ./...
+          go test -count=1 -p 1 -v -race -timeout 10m ./...

@@ -25,6 +25,9 @@ concurrency:
   group: sqlite-watch
   cancel-in-progress: false
 
+env:
+  GOCACHEPROG: ""
+
 jobs:
   check:
     name: Check upstream SQLite release
@@ -42,7 +45,7 @@ jobs:
       - uses: actions/setup-go@v6.4.0
         with:
           go-version-file: go.mod
-          cache: true
+          cache: false
       - name: Check sqlite.org/download.html
         id: check
         env:
@@ -84,7 +87,7 @@ jobs:
       - uses: actions/setup-go@v6.4.0
         with:
           go-version-file: go.mod
-          cache: true
+          cache: false
       - name: Install Ninja
         run: |
           if [ "$(uname -s)" = "Linux" ]; then
@@ -106,7 +109,7 @@ jobs:
         run: |
           eval "$(sqlite3/build.sh -T)"
           go vet ./...
-          go test -p 1 -v -race -timeout 10m ./...
+          go test -count=1 -p 1 -v -race -timeout 10m ./...
 
   update:
     name: Commit SQLite pin update
@@ -123,7 +126,7 @@ jobs:
       - uses: actions/setup-go@v6.4.0
         with:
           go-version-file: go.mod
-          cache: true
+          cache: false
       - name: Update SQLite pins and metadata
         run: go run ./scripts/release/sync-sqlite -apply -force
       - name: Commit and push SQLite update
